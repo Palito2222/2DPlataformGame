@@ -33,6 +33,18 @@ public class CharacterData : ScriptableObject
     [GUIColor("#8EF8FF")]
     public float jumpSpeed;
 
+    [VerticalGroup("Game Data")]
+    [GUIColor("#8EF8FF")]
+    public float fallSpeed;
+
+    [VerticalGroup("Game Data")]
+    [GUIColor("#8EF8FF")]
+    public float maxSlopeAngle;
+
+    [VerticalGroup("Game Data")]
+    [GUIColor("#8EF8FF")]
+    public float slopeAcceleration;
+
     [Title("Estadísticas", bold: true, horizontalLine: true, TitleAlignment = TitleAlignments.Left)]
 
     [VerticalGroup("Stats")]

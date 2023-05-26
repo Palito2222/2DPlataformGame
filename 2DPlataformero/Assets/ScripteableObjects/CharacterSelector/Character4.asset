@@ -16,8 +16,11 @@ MonoBehaviour:
   characterDescription: 
   uniqueID: 4
   characterSprite: {fileID: 21300000, guid: 50f34cd07c2cfc3409bdee3b8bce03f7, type: 3}
-  moveSpeed: 5
-  jumpSpeed: 5
+  moveSpeed: 6
+  jumpSpeed: 6
+  fallSpeed: -10
+  maxSlopeAngle: 60
+  slopeAcceleration: 1
   health: 0
   attack: 0
   attackRadius: 0

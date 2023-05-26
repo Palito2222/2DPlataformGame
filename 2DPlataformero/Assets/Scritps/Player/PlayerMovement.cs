@@ -13,14 +13,9 @@ public class PlayerMovement : NetworkBehaviour
     private Rigidbody2D rb;
     private bool isGrounded;
 
-    public override void OnStartClient()
+    public override void OnStartLocalPlayer()
     {
-        base.OnStartClient();
-
-        if (!isLocalPlayer)
-        {
-            return;
-        }
+        base.OnStartLocalPlayer();
 
         virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
         virtualCamera.Follow = transform;

@@ -8,7 +8,7 @@ public class CharacterSelector : NetworkBehaviour
     [SerializeField] private CharacterData character2;
     [SerializeField] private CharacterData character3;
     [SerializeField] private CharacterData character4;
-    [SerializeField] private PlayerMovement playerMovement;
+    [SerializeField] private PlayerController playerMovement;
     [SerializeField] private SpriteRenderer spriteRenderer;
     private CharacterData currentCharacter;
 

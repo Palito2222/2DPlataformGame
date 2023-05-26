@@ -7,7 +7,8 @@ public class PlayerNameInput : NetworkBehaviour
     [SerializeField] private TextMeshPro playerNameText;
 
     [SerializeField] private TMP_InputField inputField;
-    [SerializeField] private PlayerMovement playerMovement;
+    [SerializeField] private GameObject namePanel;
+    [SerializeField] private PlayerController playerMovement;
 
     [SyncVar(hook = nameof(OnPlayerNameChanged))]
     private string playerName = "";
@@ -15,7 +16,7 @@ public class PlayerNameInput : NetworkBehaviour
     public override void OnStartLocalPlayer()
     {
         playerMovement.enabled = false;
-        inputField.gameObject.SetActive(true);
+        namePanel.gameObject.SetActive(true);
         inputField.onEndEdit.AddListener(OnInputEndEdit);
     }
 
@@ -23,7 +24,7 @@ public class PlayerNameInput : NetworkBehaviour
     {
         playerName = inputText;
         playerNameText.text = playerName;
-        inputField.gameObject.SetActive(false);
+        namePanel.gameObject.SetActive(false);
 
         CmdSetPlayerName(playerName);
         playerMovement.enabled = true;
