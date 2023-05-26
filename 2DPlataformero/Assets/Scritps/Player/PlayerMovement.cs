@@ -52,5 +52,10 @@ public class PlayerMovement : NetworkBehaviour
         float movementInput = Input.GetAxis("Horizontal");
         rb.velocity = new Vector2(movementInput * characterData.moveSpeed, rb.velocity.y);
     }
+
+    public void SetCharacterData(CharacterData data)
+    {
+        characterData = data;
+    }
 }
 

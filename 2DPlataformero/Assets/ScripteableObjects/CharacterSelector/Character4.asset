@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 73dc88786ede9284ba0fec92c24c1af7, type: 3}
-  m_Name: MainCharacter
+  m_Name: Character4
   m_EditorClassIdentifier: 
   characterName: 
   characterDescription: 
-  uniqueID: 5
-  characterSprite: {fileID: 0}
+  uniqueID: 4
+  characterSprite: {fileID: 21300000, guid: 50f34cd07c2cfc3409bdee3b8bce03f7, type: 3}
   moveSpeed: 5
   jumpSpeed: 5
-  health: 10
-  attack: 1
-  attackRadius: 1
+  health: 0
+  attack: 0
+  attackRadius: 0
   defense: 0
   probCrit: 0
   dmgCrit: 0

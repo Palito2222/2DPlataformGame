@@ -13,6 +13,10 @@ public class CharacterData : ScriptableObject
     [TextArea]
     public string characterDescription;
 
+    [BoxGroup("Información Básica")]
+    [LabelWidth(120)]
+    public string uniqueID;
+
     [Title("Sprite", bold: true, horizontalLine: true, TitleAlignment = TitleAlignments.Left)]
 
     [PreviewField(75, Alignment = Sirenix.OdinInspector.ObjectFieldAlignment.Left)]
