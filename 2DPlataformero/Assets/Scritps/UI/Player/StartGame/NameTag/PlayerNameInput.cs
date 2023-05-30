@@ -11,7 +11,7 @@ public class PlayerNameInput : NetworkBehaviour
     [SerializeField] private PlayerController playerMovement;
 
     [SyncVar(hook = nameof(OnPlayerNameChanged))]
-    private string playerName = "";
+    public string playerName = "";
 
     public override void OnStartLocalPlayer()
     {

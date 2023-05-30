@@ -1,4 +1,5 @@
 using Cinemachine;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class PlayerController : FSM
@@ -10,19 +11,25 @@ public class PlayerController : FSM
 
     public FSMState curState = FSMState.None;
 
+    //Variables y Referencias
+    [SerializeField] private Animator animator;
     [SerializeField] private CharacterData characterData;
     [SerializeField] private CinemachineVirtualCamera virtualCamera;
-
-    [SerializeField] private Transform attackPosOrigin;
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private LayerMask groundLayer;
-
-    [SerializeField] private Animator animator;
+    [SerializeField] private Transform characterSprite; // Referencia al objeto vacío que contiene el sprite del personaje
     private Rigidbody2D rb;
 
+    [SerializeField] private Transform attackPosOrigin;
+
+    //GroundChecks
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float slideSpeed = 2.0f;
+
+    //Input
     private float horizontalAxis;
     private bool jump = false;
     private bool attack = false;
+
 
     public override void OnStartLocalPlayer()
     {
@@ -53,6 +60,10 @@ public class PlayerController : FSM
         horizontalAxis = Input.GetAxis("Horizontal");
         jump = Input.GetButton("Jump");
         attack = Input.GetButtonDown("Fire1");
+
+        // Cambiar la rotación del sprite del personaje según la dirección horizontal
+        int lookAt = horizontalAxis > 0 ? -1 : horizontalAxis < 0 ? 1 : (int)characterSprite.localScale.x;
+        characterSprite.localScale = new Vector2(lookAt, 1);
     }
 
     protected override void FSMFixedUpdate()
@@ -94,13 +105,25 @@ public class PlayerController : FSM
 
         // animator.Play("CharacterIdleAnimation");
 
-        // Resetear la velocidad a cero
-        rb.velocity = new Vector2(0f, rb.velocity.y);
+        float slopeAngle = GetSlopeAngle();
+
+        if (IsGrounded())
+        {
+            if (Mathf.Abs(slopeAngle) < characterData.maxSlopeAngle)
+            {
+                //Volver Kinematico al personaje, para ignorar las fisicas (ej: rampas)
+                rb.isKinematic = true;
+            }
+            // Resetear la velocidad a cero
+            rb.velocity = Vector2.zero;
+        }
+
+
 
         // Reglas de Transición
-
-        if (jump)
+        if (jump && IsGrounded())
         {
+            rb.isKinematic = false;
             curState = FSMState.Jump;
             return;
         }
@@ -113,16 +136,24 @@ public class PlayerController : FSM
 
         if (Mathf.Abs(horizontalAxis) > Mathf.Epsilon)
         {
-            if (IsOnSlope() && Mathf.Abs(GetSlopeAngle()) <= characterData.maxSlopeAngle)
+            if (rb.isKinematic == true)
             {
-                float slopeVelocity = Mathf.MoveTowards(rb.velocity.x, horizontalAxis * characterData.moveSpeed, characterData.slopeAcceleration);
-                rb.velocity = new Vector2(slopeVelocity, rb.velocity.y);
+                rb.isKinematic = false;
             }
-            else
-            {
-                rb.velocity = new Vector2(horizontalAxis * characterData.moveSpeed, rb.velocity.y);
-            }
+
             curState = FSMState.Moving;
+            return;
+        }
+
+        if (!IsGrounded())
+        {
+            if (rb.isKinematic == true)
+            {
+                rb.isKinematic = false;
+            }
+
+            curState = FSMState.Fall;
+            return;
         }
     }
 
@@ -132,19 +163,12 @@ public class PlayerController : FSM
 
         // animator.Play("CharacterMovingAnimation");
 
-        if (IsOnSlope() && Mathf.Abs(GetSlopeAngle()) <= characterData.maxSlopeAngle)
-        {
-            float slopeVelocity = Mathf.MoveTowards(rb.velocity.x, horizontalAxis * characterData.moveSpeed, characterData.slopeAcceleration);
-            rb.velocity = new Vector2(slopeVelocity, rb.velocity.y);
-        }
-        else
+        float slopeAngle = GetSlopeAngle();
+
+        //Movimiento basado en Velocidad Constante si el personaje está en el suelo
+        if (IsGrounded() || (IsGrounded() && Mathf.Abs(slopeAngle) < characterData.maxSlopeAngle))
         {
             rb.velocity = new Vector2(horizontalAxis * characterData.moveSpeed, rb.velocity.y);
-
-            if (jump && IsGrounded() && Mathf.Abs(GetSlopeAngle()) <= characterData.maxSlopeAngle)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, characterData.jumpSpeed);
-            }
         }
 
         // Reglas de Transición
@@ -155,14 +179,23 @@ public class PlayerController : FSM
         //    return;
         //}
 
-        if ((!IsGrounded() && !IsOnSlope()) || (IsOnSlope() && Mathf.Abs(GetSlopeAngle()) > characterData.maxSlopeAngle))
+        if (jump && IsGrounded())
         {
-            curState = FSMState.Fall;
+            curState = FSMState.Jump;
+            return;
         }
 
-        if (Mathf.Abs(horizontalAxis) < Mathf.Epsilon && IsGrounded() && !IsOnSlope())
+        if (!IsGrounded() || Mathf.Abs(slopeAngle) > characterData.maxSlopeAngle)
+        {
+            curState = FSMState.Fall;
+            return;
+
+        }
+
+        if (Mathf.Abs(horizontalAxis) < Mathf.Epsilon && IsGrounded())
         {
             curState = FSMState.Idle;
+            return;
         }
     }
 
@@ -172,9 +205,12 @@ public class PlayerController : FSM
 
         // animator.Play("CharacterJumpAnimation");
 
+        float slopeAngle = GetSlopeAngle();
+
+        // Mantener la velocidad horizontal del estado Moving
         rb.velocity = new Vector2(horizontalAxis * characterData.moveSpeed, rb.velocity.y);
 
-        if (jump && IsGrounded())
+        if (IsGrounded())
         {
             rb.velocity = new Vector2(rb.velocity.x, characterData.jumpSpeed);
         }
@@ -187,9 +223,18 @@ public class PlayerController : FSM
         //    return;
         //}
 
-        if (rb.velocity.y < 0)
+        //Si el personaje está a una altura menor que un valor cercano a 0
+        if (rb.velocity.y < Mathf.Epsilon || Mathf.Abs(slopeAngle) > characterData.maxSlopeAngle)
         {
             curState = FSMState.Fall;
+            return;
+        }
+
+        //Si el jugador está en el suelo y su input Horizontal es mayor que un valor cercano a 0 (ej: 0.1), cambio a Moving
+        if (Mathf.Abs(horizontalAxis) > Mathf.Epsilon && IsGrounded())
+        {
+            curState = FSMState.Moving;
+            return;
         }
     }
 
@@ -198,15 +243,33 @@ public class PlayerController : FSM
         // Actualizar Estado
         // animator.Play("CharacterFallAnimation")
 
-        float targetVelocityX = horizontalAxis * characterData.moveSpeed;
+        bool isSliding = false; // Variable para realizar un seguimiento del estado de deslizamiento
+        float slopeAngle = GetSlopeAngle();
 
-        if (IsOnSlope() && Mathf.Abs(GetSlopeAngle()) > characterData.maxSlopeAngle)
+        if (Mathf.Abs(slopeAngle) > characterData.maxSlopeAngle)
         {
-            // Resbalar automáticamente hacia abajo en pendientes pronunciadas
-            targetVelocityX = 0f;
+            // Calcular la velocidad de deslizamiento basada en la pendiente y el signo del ángulo
+            float slideSpeedRB = slideSpeed * Mathf.Cos(Mathf.Deg2Rad * slopeAngle) * Mathf.Sign(slopeAngle);
+
+            // Aplicar la velocidad de deslizamiento
+            rb.velocity = new Vector2(slideSpeedRB, rb.velocity.y);
+
+            // Establecer el estado de deslizamiento en verdadero
+            isSliding = true;
+        }
+        else
+        {
+            if (!isSliding)
+            {
+                rb.velocity = new Vector2(horizontalAxis * characterData.moveSpeed, rb.velocity.y);
+            }
+            else if (IsGrounded())
+            {
+                // Restablecer el estado de deslizamiento a falso
+                isSliding = false;
+            }
         }
 
-        rb.velocity = new Vector2(targetVelocityX, rb.velocity.y);
 
         // Reglas de Transición
 
@@ -216,21 +279,20 @@ public class PlayerController : FSM
         //    return;
         //}
 
-        if ((IsGrounded() && !IsOnSlope() && rb.velocity.y <= 0) || (IsOnSlope() && Mathf.Abs(GetSlopeAngle()) < characterData.maxSlopeAngle && Mathf.Abs(rb.velocity.x) < 0.1f && rb.velocity.y <= 0 && Mathf.Abs(GetSlopeAngle()) <= characterData.maxSlopeAngle))
+        //Si el jugador está en el suelo y su input Horizontal es menor que un valor cercano a 0 (ej: -0.1), cambio a Idle
+        if (Mathf.Abs(horizontalAxis) < Mathf.Epsilon && IsGrounded())
         {
-            if (Mathf.Abs(horizontalAxis) > Mathf.Epsilon)
-            {
-                curState = FSMState.Moving;
-            }
-            else
-            {
-                curState = FSMState.Idle;
-            }
+            curState = FSMState.Idle;
+            return;
         }
 
-        // Declaraciones de depuración
-        Debug.Log("Slope Angle: " + GetSlopeAngle());
-        Debug.Log("Max Slope Angle: " + characterData.maxSlopeAngle);
+        //Si el jugador está en el suelo y su input Horizontal es mayor que un valor cercano a 0 (ej: 0.1), cambio a Moving
+        if (Mathf.Abs(horizontalAxis) > Mathf.Epsilon && IsGrounded())
+        {
+
+            curState = FSMState.Moving;
+            return;
+        }
     }
 
     private void UpdateAttackState()
@@ -297,20 +359,23 @@ public class PlayerController : FSM
 
     private bool IsGrounded()
     {
-        RaycastHit2D hit = Physics2D.Raycast(groundCheck.position, Vector2.down, 0.5f, groundLayer);
-        return hit.collider != null;
-    }
-
-    private bool IsOnSlope()
-    {
-        RaycastHit2D slopeHit = Physics2D.Raycast(groundCheck.position, Vector2.down, 1.0f, groundLayer);
-        return slopeHit.collider != null && Mathf.Abs(slopeHit.normal.x) > 0.1f;
+        return Physics2D.OverlapCircle(groundCheck.position, 0.12f, groundLayer) != null;
     }
 
     private float GetSlopeAngle()
     {
-        RaycastHit2D slopeHit = Physics2D.Raycast(groundCheck.position, Vector2.down, 1.0f, groundLayer);
-        return Mathf.Atan2(slopeHit.normal.x, slopeHit.normal.y) * Mathf.Rad2Deg;
+        RaycastHit2D hit = Physics2D.Raycast(groundCheck.position, Vector2.down, 0.5f, groundLayer);
+        if (hit.collider != null)
+        {
+            Vector2 surfaceNormal = hit.normal;
+            Vector2 upVector = Vector2.up;
+
+            float slopeAngle = Mathf.DeltaAngle(Mathf.Atan2(surfaceNormal.y, surfaceNormal.x) * Mathf.Rad2Deg, Mathf.Atan2(upVector.y, upVector.x) * Mathf.Rad2Deg);
+
+            return slopeAngle;
+        }
+
+        return Vector2.Angle(hit.normal, Vector2.up);
     }
 
     public void SetCharacterData(CharacterData data)

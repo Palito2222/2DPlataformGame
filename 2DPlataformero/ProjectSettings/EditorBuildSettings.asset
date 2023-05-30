@@ -6,7 +6,13 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/StartMenu.unity
+    guid: 84a1c32921cbb474783b9cc58d760793
+  - enabled: 1
+    path: Assets/Scenes/WaitingScreen.unity
+    guid: a26243de21340364ea3a90339a62c73b
+  - enabled: 1
+    path: Assets/Scenes/InGame.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 8349ca4d70fc29541a6472ab621b39bf, type: 2}
