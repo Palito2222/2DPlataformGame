@@ -91,9 +91,8 @@ public class InGameUI : NetworkBehaviour
         chatUI.SetActive(false);
         uiPanel.SetActive(true);
 
-        playerController.curState = PlayerController.FSMState.Idle;
-        playerController.enabled = false;
-        rb.velocity = new Vector2(0, 0);
+        playerController.OnDisableMovement();
+        rb.velocity = Vector2.zero;
     }
 
     //Al presionar el boton de Atras en el Menu inGame
@@ -103,7 +102,7 @@ public class InGameUI : NetworkBehaviour
         chatUI.SetActive(true);
         uiButtonGO.SetActive(true);
 
-        playerController.enabled = true;
+        playerController.OnEnableMovement();
     }
 
     //Al presionar te desconectas de la partida
@@ -125,12 +124,12 @@ public class InGameUI : NetworkBehaviour
 
     public void OnSelectChatInput()
     {
-        rb.velocity = new Vector2(0, 0);
-        playerController.enabled = false;
+        playerController.OnDisableMovement();
+        rb.velocity = Vector2.zero;
     }
 
     public void OnDeselectChatInput()
     {
-        playerController.enabled = true;
+        playerController.OnEnableMovement();
     }
 }

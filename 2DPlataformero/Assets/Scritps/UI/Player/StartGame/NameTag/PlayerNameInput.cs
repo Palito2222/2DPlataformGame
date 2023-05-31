@@ -15,7 +15,7 @@ public class PlayerNameInput : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
-        playerMovement.enabled = false;
+        playerMovement.OnDisableMovement();
         namePanel.gameObject.SetActive(true);
         inputField.onEndEdit.AddListener(OnInputEndEdit);
     }
@@ -27,7 +27,7 @@ public class PlayerNameInput : NetworkBehaviour
         namePanel.gameObject.SetActive(false);
 
         CmdSetPlayerName(playerName);
-        playerMovement.enabled = true;
+        playerMovement.OnEnableMovement();
     }
 
     [Command]

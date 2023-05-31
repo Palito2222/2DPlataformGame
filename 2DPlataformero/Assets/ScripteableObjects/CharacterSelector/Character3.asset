@@ -19,9 +19,9 @@ MonoBehaviour:
   moveSpeed: 7
   jumpSpeed: 10
   maxSlopeAngle: 60
-  health: 0
-  attack: 0
-  attackRadius: 0
+  health: 25
+  attack: 1
+  attackRadius: 1
   defense: 0
   probCrit: 0
   dmgCrit: 0
